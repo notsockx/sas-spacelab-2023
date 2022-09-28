@@ -1,0 +1,15 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP NE555DR
+D Single Precision Timer
+K
+F http://www.ti.com/lit/ds/symlink/ne555.pdf
+$ENDCMP
+#
+$CMP XC9265A331MR-G
+D Switching Voltage Regulators Ultra Low Power PFM DCDC Converter
+K
+F https://www.torexsemi.com/file/xc9265/XC9265.pdf
+$ENDCMP
+#
+#End Doc Library
