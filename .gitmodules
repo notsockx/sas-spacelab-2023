@@ -1,0 +1,3 @@
+[submodule "pcb/lib/USEQGSE"]
+	path = pcb/lib/USEQGSE
+	url = https://github.com/notsockx/USEQGSE
