@@ -1,4 +1,4 @@
 (fp_lib_table
   (lib (name "USEQGSE")(type "KiCad")(uri "C:/Users/nimda/Documents/school/clubs/spacelab/sas-spacelab-2023/pcb/lib/USEQGSE/USEQGSE.pretty")(options "")(descr ""))
-  (lib (name "XC9265")(type "KiCad")(uri "C:/Users/nimda/Documents/school/clubs/spacelab/sas-spacelab-2023/pcb/lib/XC9265/XC9265.pretty")(options "")(descr ""))
+  (lib (name "SamacSys")(type "KiCad")(uri "C:/Users/nimda/Documents/school/clubs/spacelab/sas-spacelab-2023/pcb/lib/SamacSys/SamacSys_Parts.pretty")(options "")(descr ""))
 )
