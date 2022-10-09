@@ -12,4 +12,10 @@ K
 F https://www.torexsemi.com/file/xc9265/XC9265.pdf
 $ENDCMP
 #
+$CMP TBD62781AFWG,EL
+D Gate Drivers DMOS Transistor Array 8-CH 50V -0.5A
+K
+F http://toshiba.semicon-storage.com/info/docget.jsp?did=58397&prodName=TBD62781AFWG
+$ENDCMP
+#
 #End Doc Library
