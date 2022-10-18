@@ -18,4 +18,28 @@ K
 F http://toshiba.semicon-storage.com/info/docget.jsp?did=58397&prodName=TBD62781AFWG
 $ENDCMP
 #
+$CMP 74LVC3G17GS,115
+D 74LVC3G17 - Triple non-inverting Schmitt trigger with 5 V tolerant input@en-us
+K
+F https://assets.nexperia.com/documents/data-sheet/74LVC3G17.pdf
+$ENDCMP
+#
+$CMP CD74FCT244ATM
+D BiCMOS FCT Interface Logic Octal Non-Inverting Buffers/Line Drivers with 3-State Outputs
+K
+F http://www.ti.com/lit/gpn/CD74FCT244AT
+$ENDCMP
+#
+$CMP SSM3K7002KFU,LF
+D MOSFET Small-signal MOSFET ID=0.4A VDSS=60V
+K
+F http://toshiba.semicon-storage.com/info/docget.jsp?did=35715&prodName=SSM3K7002KFU
+$ENDCMP
+#
+$CMP SSM3J15FU,LF
+D MOSFET Small-signal MOSFET High Speed Switching
+K
+F https://toshiba.semicon-storage.com/info/docget.jsp?did=22747&prodName=SSM3J15FU
+$ENDCMP
+#
 #End Doc Library
