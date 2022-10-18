@@ -42,4 +42,22 @@ K
 F https://toshiba.semicon-storage.com/info/docget.jsp?did=22747&prodName=SSM3J15FU
 $ENDCMP
 #
+$CMP BSS84AK,215
+D BSS84AK,215 P-Channel MOSFET, 180 mA, 50 V, 3-Pin SOT-23 Nexperia
+K
+F 
+$ENDCMP
+#
+$CMP NX7002BKR
+D MOSFET 60V N-channel Trench MOSFET
+K
+F https://assets.nexperia.com/documents/data-sheet/NX7002BK.pdf
+$ENDCMP
+#
+$CMP 158301250
+D Standard LEDs - SMD WL-SWTP SMD Top View PLCC2 3014 DyltCRI80
+K
+F https://media.digikey.com/pdf/Data%20Sheets/Wurth%20Electronics%20PDFs/White_LED_Br.pdf
+$ENDCMP
+#
 #End Doc Library

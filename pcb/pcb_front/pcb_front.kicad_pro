@@ -386,7 +386,7 @@
       "idf": "",
       "netlist": "../../../../../../../../../Program Files/KiCad/6.0/",
       "specctra_dsn": "",
-      "step": "",
+      "step": "pcb_front.step",
       "vrml": ""
     },
     "page_layout_descr_file": ""
