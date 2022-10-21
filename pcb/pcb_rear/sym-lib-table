@@ -1,4 +1,4 @@
 (sym_lib_table
   (lib (name "USEQGSE")(type "KiCad")(uri "C:/Users/nimda/Documents/school/clubs/spacelab/sas-spacelab-2023/pcb/lib/USEQGSE/USEQGSE.kicad_sym")(options "")(descr ""))
-  (lib (name "SamacSys")(type "Legacy")(uri "C:/Users/nimda/Documents/school/clubs/spacelab/sas-spacelab-2023/pcb/lib/SamacSys/SamacSys_Parts.lib")(options "")(descr ""))
+  (lib (name "Mouser Parts")(type "Legacy")(uri "C:/Users/nimda/Documents/school/clubs/spacelab/sas-spacelab-2023/pcb/lib/SamacSys/SamacSys_Parts.lib")(options "")(descr ""))
 )
