@@ -1,6 +1,6 @@
 ' {$STAMP BS2p}
 ' {$PBASIC 2.5}
-' {$PORT COM12}
+' {$PORT COM6}
 '************************************************************************
 '
 ' 2011 ISS BIOS System Entry Points
@@ -21,7 +21,7 @@ version   CON    1601
 '     Conditional Assemblies
 '
 #DEFINE FlyConfig = 1              '1=Set to Flight Configuration, 0=Test Configuration
-#DEFINE fastclock = 2              '0=Normal Time X1, 1=Medium Time ~X17 2=Fast Time ~X60
+#DEFINE fastclock = 0              '0=Normal Time X1, 1=Medium Time ~X17 2=Fast Time ~X60
 #DEFINE testreset = 1              '1=test reset and reset count
 #DEFINE SaySlot   = 1              '1=Say Slot with vector
 #DEFINE Sayit = 1                  '1=Say what is happening
@@ -346,7 +346,7 @@ HeartBeatfromtext:               'forced outside system
 systeminit:
   INPUT   internalscl 'Set internal SLC buss high
   INPUT   internalsda 'Set internal SDA buss high
-  I2COUT InternI2c, PCF8574address, [$00000000] 'Set Output of 8574 for input all LOW
+  I2COUT InternI2c, PCF8574address, [%00000000] 'Set Output of 8574 for input all LOW
   LOW     cameraclk   'Set camera clock to logic low
   OUTPUT  cameraclk   'Set camera clock to output
   INPUT   cameramiso  'Set camera miso to receive from camera
@@ -371,14 +371,15 @@ systeminit:
 
   PUT     CameraRes,Camera640        'set degault to 640
   'PUT    CameraRes,Camera320        'set default to 320
-  PUT     CameraQua,CameraBest       'set default to Best
+  'PUT     CameraQua,CameraBest       'set default to Best
   'PUT    CameraQua,CameraBetter     'set default to Better
-  'PUT    CameraQua,CameraNormal     'set default to Normal
+  PUT    CameraQua,CameraNormal     'set default to Normal
   PUT     TextPointer,$C000          'Text start
 '
   PUT   MLabStatus,$20                'Default none zero status response
 '
   '-------- Setup other conditions here  ------
+  'PUT PowerStatus, P300ma             ' change power mode to 300ma
 '
 '------ How many resets occured after program clean program load --------------
 '

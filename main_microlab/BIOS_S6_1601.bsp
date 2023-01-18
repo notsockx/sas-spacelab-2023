@@ -1,6 +1,6 @@
 ' {$STAMP BS2p}
 ' {$PBASIC 2.5}
-' {$PORT COM12}
+' {$PORT COM6}
 '**************************************************
 '
 '2011 ISS BIOS System Slot
@@ -21,7 +21,7 @@ version   CON    1601
 '     Conditional Assemblies
 '
 #DEFINE FlyConfig = 1              '1=Set to Flight Configuration, 0=Test Configuration
-#DEFINE fastclock = 2              '0=Normal Time X1, 1=Medium Time ~X17 2=Fast Time ~X60
+#DEFINE fastclock = 0              '0=Normal Time X1, 1=Medium Time ~X17 2=Fast Time ~X60
 #DEFINE testreset = 1              '1=test reset and reset count
 #DEFINE SaySlot   = 1              '1=Say Slot with vector
 #DEFINE Sayit = 1                  '1=Say what is happening
@@ -306,7 +306,7 @@ SysCPUcal    CON   $C002    'External E2RAM calibration locations
 '*************************************************************************
   '
   #IF SaySlot = 1 #THEN
-  DEBUG " S6-V",DEC TempReg1
+  DEBUG ">S6-V",DEC TempReg1,CR
   #ENDIF
   BRANCH TempReg1,[McMekcommand,       '0 vector flight condition setup override
   TakePhoto,                           '1 after chamber (different return than 2)
@@ -376,7 +376,7 @@ McMekcommand:
     SEROUT masterout,Baud9600T,[Ack]  'Send Acknowledge command to McMek I'm ready to receive
 '    DEBUG "s ACK",CR   'if sent may be to much time. if command is comming from McMek master
     SERIN masterin ,Baud9600T,1000 ,noinput,[TempReg2]'Wait for request/command from McMek,wait .5 sec for response
-    DEBUG HEX2 TempReg2
+    DEBUG HEX2 TempReg2,CR
     '
     '
     '
@@ -389,10 +389,10 @@ McMekcommand:
     IF TempReg2 = $15 THEN GOTO UpLoadB0          'upload bank 0 data
     IF TempReg2 = $16 THEN GOTO UpLoadB1          'upload bank 1 data
     IF TempReg2 = $17 THEN GOTO UpLoadB2          'upload bank 2 data
-    IF TempReg2 = $20 THEN GOTO SetP300           'set power to 300ma mode
-    IF TempReg2 = $21 THEN GOTO SetP100           'set power to 100ma power mode
-    IF TempReg2 = $22 THEN GOTO SetP75            'set power to 75ma power mode
-    IF TempReg2 = $23 THEN GOTO SetP50            'set power to 50ma power mode
+'    IF TempReg2 = $20 THEN GOTO SetP300           'set power to 300ma mode
+'    IF TempReg2 = $21 THEN GOTO SetP100           'set power to 100ma power mode
+'    IF TempReg2 = $22 THEN GOTO SetP75            'set power to 75ma power mode
+'    IF TempReg2 = $23 THEN GOTO SetP50            'set power to 50ma power mode
 
     '
 noinput:
@@ -433,7 +433,7 @@ Errorback:
 Statusback:
     GET MLabStatus,TempReg0                'get MicroLab status byte
     SEROUT masterout,Baud9600T,pace,[TempReg0]  'Send MicroLab status to master
-    DEBUG " S=",HEX2 TempReg0
+    DEBUG " S=",HEX2 TempReg0,CR
     GOTO ReturnBack                        'back to flow of things
     '
     ' MicroLab ID
@@ -448,20 +448,20 @@ GetMLID:
     '
     '  Set Power Levels
     '
-SetP300:                                   'Note: this is a hard command all 8 bits
-    TempReg0 = P300ma                      'get 300 ma control byte
-    GOTO SetPower1
-SetP100:
-    TempReg0 = P100ma                      'get 100 ma control byte
-    GOTO SetPower1
-SetP75:
-    TempReg0 = P75ma                      'get 300 ma control byte
-    GOTO SetPower1
-SetP50:
-    TempReg0 = P50ma                      'get 300 ma control byte
-SetPower1:
-    PUT PowerStatus,TempReg0               'set the control byte all 8 bits
-    GOTO Ackback                           'send Ack of command
+'SetP300:                                   'Note: this is a hard command all 8 bits
+'    TempReg0 = P300ma                      'get 300 ma control byte
+'    GOTO SetPower1
+'SetP100:
+'    TempReg0 = P100ma                      'get 100 ma control byte
+'    GOTO SetPower1
+'SetP75:
+'    TempReg0 = P75ma                      'get 300 ma control byte
+'    GOTO SetPower1
+'SetP50:
+'    TempReg0 = P50ma                      'get 300 ma control byte
+'SetPower1:
+'    PUT PowerStatus,TempReg0               'set the control byte all 8 bits
+'    GOTO Ackback                           'send Ack of command
 '
 '-----------------------------------------------------------
 '  Take a photo and transfer it to McMek
@@ -472,10 +472,17 @@ TakeandDownload:
   GOTO DumpInText             'will dump in text to McMek
   '
 TakePhoto:
-    DEBUG "tk-"                 'Tell terminal what I am doing now
-    GOSUB TakePhoto1            'take the photo
-    DEBUG "st",CR               'Tell terminal what I am doing now
-    GOTO storephoto             'store the photo
+    ' NOTE: MODIFIED FROM ORIGINAL
+    DEBUG "taking photo..."
+    I2CIN InternI2c, PCF8574address, [UserVar5]      ' read  + store current IO state
+    I2COUT internI2C, PCF8574address, [%00100000]    ' turn on LEDs
+    GOSUB TakePhoto1                                 ' take the photo
+    DEBUG "DONE",CR
+
+    DEBUG "storing photo..."
+    I2COUT internI2C, PCF8574address, [UserVar5]     ' return to previous IO state
+    GOTO storephoto                                  ' store the photo
+    DEBUG "DONE",CR
   '
 TakePhoto1:
   '
@@ -581,7 +588,7 @@ GetPicture:
     FOR xcounter = 0 TO 7                                      'set to send 8 bytes
     LOOKUP xcounter,[$ff,$ff,$ff,$04,$05,$00,$00,$00],sdata    'get picture command                                                               '
     GOSUB manualbytespi                                        'send and receive
-    IF counter=0 THEN DEBUG CR,"hold 2",CR:PUT CameraQua,CameraBetter:GOTO TakeandDownload
+    IF counter=0 THEN DEBUG CR,"hold 2",CR:PUT CameraQua,CameraNormal:GOTO TakeandDownload
     text(xcounter) = TempReg3                                  'place in array
     NEXT
     HIGH cameraCS                                              'deselect camera
@@ -797,7 +804,7 @@ StorePhoto:
     xcounter=xcounter+1                       'point target to next location
     IF xcounter.LOWBYTE  <> 0 THEN GOTO NotYetHeart   'no heartbeat yet
     '
-    DEBUG "*"                      'output to show alive
+    DEBUG "."                      'output to show alive
     '
     #IF nodebug = 0 #THEN
     DEBUG HEX2 TempReg2                      'output to verify bank

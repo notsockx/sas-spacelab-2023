@@ -1,6 +1,6 @@
 ' {$STAMP BS2p, BIOS_S1_1603.bsp, BIOS_S2_1601.bsp, BIOS_S3_1601.bsp, BIOS_S4_1601.bsp, BIOS_S5_1601.bsp, BIOS_S6_1601.bsp, BIOS_S7_1601.bsp}
 ' {$PBASIC 2.5}
-' {$PORT COM12}
+' {$PORT COM6}
 '**************************************************
 '
 '  Program Slot 0 = Start Up and main control loop for
@@ -21,7 +21,7 @@ version   CON    1601   'Associatitive Event Table.
 '******************  Start of System Global lables *******************
 '     Conditional Assemblies
 '
-#DEFINE FlyConfig = 0              '1=Set to Flight Configuration, 0=Test Configuration
+#DEFINE FlyConfig = 1              '1=Set to Flight Configuration, 0=Test Configuration
 #DEFINE fastclock = 0              '0=Normal Time X1, 1=Medium Time ~X17 2=Fast Time ~X60
 #DEFINE testreset = 1              '1=test reset and reset count
 #DEFINE SaySlot   = 1              '1=Say Slot with vector
@@ -305,7 +305,9 @@ SysCPUcal    CON   $C002    'External E2RAM calibration locations
 '
 '
 Main:
-  #IF SaySlot=1 #THEN DEBUG ">S0-V",DEC TempReg1," " #ENDIF
+  'IF SaySlot=1 THEN
+  DEBUG ">S0-V",DEC TempReg1,CR
+  'ENDIF
   '
   GET Resetverify,TempReg0              'To test for Reset, if=0 was reset, if<>0 then slot return
   IF  TempReg0=0 THEN WasReset          'entry was From HARD Reset
@@ -379,6 +381,7 @@ RuNSLOT:                                'enter tempreg3 = slot
     '
 systeminitReturn:                       'return location from slot 7
     '
+    I2COUT InternI2c, PCF8574address, [%00000000] 'Set Output of 8574 for input all LOW
     DEBUG CR,"Payload Power Initialization"
     FOR tempreg0 = 0 TO 10
       OUT8=0
@@ -566,7 +569,7 @@ HeartBeat:
 '
 FlightStart:
     '
-    DEBUG CR,"MicroLab Bios Template Ver ",DEC3 version,CR
+    DEBUG CR,"SAS SpaceLab 2023",CR
     '
 '********************************
 '   Example Microlab program here
@@ -626,7 +629,7 @@ ExampleCount0:
 noabort:
          '****************************************************
          '
-         DEBUG "m"                         '"m" output appx every sec at normal clk rate
+         DEBUG "."                         '"m" output appx every sec at normal clk rate
          TempWord = MoprClk0Val            'Get value to reinit mission operations clock 0
          PUT MoprClk0,Word TempWord        'Reinit mission operations clock 0
          '
@@ -638,13 +641,13 @@ noabort:
          '  Fall through approx every 30 sec normal clock rate for heartbeat
          '
          STORE 0
-         DEBUG " H"                        ' Output Heartbeat Time stamp and number
+         DEBUG CR,"Time: "                        ' Output Heartbeat Time stamp and number
          FOR tempword = DurDay TO DurMin
            READ tempword,tempword1
            DEBUG ":",DEC2 tempword1
          NEXT
          GET HeartBeatCnt,UserVar4        ' Retrieve MoprMinVal from ScratchPad  (formerly scr_Register7)
-         DEBUG "-",DEC 3-UserVar4,"  ",CR  ' Heartbeat format H:Day:Hr:Mn-hb#
+         DEBUG CR, "Heartbeat #: ",DEC 3-UserVar4,CR  ' Heartbeat format H:Day:Hr:Mn-hb#
          STORE 4
          '
          TempWord = MoprClk1Val            'Reinit loop mission operations clock 1

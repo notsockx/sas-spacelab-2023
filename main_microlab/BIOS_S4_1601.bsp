@@ -19,7 +19,7 @@ version   CON    1605
 '     Conditional Assemblies
 '
 #DEFINE FlyConfig = 1              '1=Set to Flight Configuration, 0=Test Configuration
-#DEFINE fastclock = 2              '0=Normal Time X1, 1=Medium Time ~X17 2=Fast Time ~X60
+#DEFINE fastclock = 0              '0=Normal Time X1, 1=Medium Time ~X17 2=Fast Time ~X60
 #DEFINE testreset = 1              '1=test reset and reset count
 #DEFINE SaySlot   = 1              '1=Say Slot with vector
 #DEFINE Sayit = 1                  '1=Say what is happening
@@ -799,13 +799,13 @@ Convert2BCD2:
 '**************
 '
 ID       DATA "SAS SpaceLab 2023",CR     'Name of School/Project
-         DATA "Data Download Number "
+         DATA "Download Number "
 LastPN   DATA "ML00000",CR                         'photo file name
 ADate    DATA "00/00/00 at "                       'RTC date
 Atime    DATA "00:00:00",CR                        'RTC time
-         DATA "ML Mission clock = "
+         DATA "ML Mission Clock = "
 Mtime    DATA "00D 00H 00M 00S",CR                 'Now Mission clock
-         DATA "Storage Bank = "                    'where in the photo
+         DATA "Bank = "                    'where in the photo
 Abank    DATA "00",CR                              'this  bank for storage
          DATA "Reset counter "                     'How many resets since last program load
 Rcnt     DATA "000",CR                             'reset count
@@ -813,18 +813,18 @@ Rcnt     DATA "000",CR                             'reset count
 ATV      DATA "00.0 C",CR                          'Abinent Temp
          DATA "Ambient Humidity = "                'humidity inside the Microlab
 AHV      DATA "00%",CR                             'ambient humidity
-         DATA "Slave CPU Temperature = "           'Tempature inside slave cpu +/- 60 dC
+         DATA "Slave CPU Temp = "           'Tempature inside slave cpu +/- 60 dC
 CTV      DATA "00.0 C",CR                    '     'not accurate, but relative correct
-         DATA "Channel 0 Analog input = "
-AV0      DATA "0.00 Volts",CR                      'Analog voltage input scaled to 0 to 2.5 volts
-         DATA "Channel 1 Analog input = "
-AV1      DATA "0.00 Volts",CR
-         DATA "Channel 2 Analog input = "
-AV2      DATA "0.00 Volts",CR
-         DATA "Channel 3 Analog input = "
-AV3      DATA "0.00 Volts",CR
+         DATA "A0 = "
+AV0      DATA "0.00 V",CR                      'Analog voltage input scaled to 0 to 2.5 volts
+         DATA "A1 = "
+AV1      DATA "0.00 V",CR
+         DATA "A2 = "
+AV2      DATA "0.00 V",CR
+         DATA "A3 = "
+AV3      DATA "0.00 V",CR
          DATA "3.3 Vcc = "
-VcV      DATA "0.00 Volts",CR
+VcV      DATA "0.00 V",CR
          DATA "System Status = "                   'status of photo buffers and download/upload
 SStat    DATA "00xxx000",CR
          DATA "Ver 080313.00",CR

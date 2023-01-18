@@ -25,29 +25,39 @@ void CheckforText(void);              //Routine to check for text request       
 void arrayprint(uint8_t x);           //write a char to the text buffer one at a time
 
 void setup() {
+  delay(5000);
   Serial.begin(9600);     // start USB serial port
-  //mySerial.begin(9600);   // start MicroLab serial
   
+  //Serial.print("opening microlab serial...");
+  mySerial.begin(9600);   // start MicroLab serial
+  //while(!mySerial) {
+  //  Serial.print(".");    
+  //}
+  //Serial.println("DONE");
+  
+  //Serial.print("opening O2 sensor serial...");
   oxygen.begin();         // start O2 sensor
-  Serial.print("Starting O2 Comms...");
   // IMPORTANT: O2 SENSOR MUST BE ON
-  while (!oxygen.begin()) {                  // check if O2 is detected
-    Serial.print(".");  // report debug message
-    delay(1000);                             // wait a bit to retry
-  }
-  Serial.print(" Finished!");
+  //while (!oxygen.begin()) {                  // check if O2 is detected
+  //  Serial.print(".");  // report debug message
+  //  delay(1000);                             // wait a bit to retry
+  //}
+  //Serial.print("DONE");
 }
 
 void loop() {
   if (mySerial.available()) {                   // was the request received ?
-    Serial.write("serial opened...");
+    Serial.println("<<< NEW REQUEST >>>");
     uint8_t y = (mySerial.read());              // yes, get the request byte
+    Serial.print("validating command... ");
     if (y = RequestData) {                    // check if request is valid
-      Serial.write("valid command...");
+      Serial.println("DONE");
       delay(15);                              // delay 15 millisec to sync with microlab
       arraypointer = 0;                       // point text pointer to the beginning of array
       uint8_t x = ' ';
-      dataRead();
+      dataRead();                             // read O2 sensor data before writing
+
+      Serial.print("writing O2 sensor data...");      
       while(x != 0xFF){
         x = (ArduinoData[arraypointer]); // do this - get value from text buffer into x
         mySerial.write(x);                  // send that value to the microlab
@@ -56,20 +66,27 @@ void loop() {
       }
       TextReady = 0;                         // Text transfered reset to get new text
       arraypointer = 0;                      // reset text pointer, text read
-      Serial.write("end");
+      Serial.println("DONE");
+      Serial.println();
     }
     else {                                    //if it was not a request text command abort
-      Serial.println ("\r\n unknown command");  //output to arduino terminal bad request abort
+      Serial.println("FAIL");  //output to arduino terminal bad request abort
+      Serial.println("ERROR: UNKNOWN COMMAND RECIEVED");
+      Serial.println();
     }                                         //Transfer finished
   }                                            //check availiable finished
 }
 
 void dataRead(void) {
-  Serial.println("read start");
-  oxygenData = oxygen.readOxygenConcentration();  // read oxygen data
+  Serial.print("reading O2 sensor data...");
+  if(!oxygen.begin()) { oxygenData = 0; }                 // check if oxygen sensor serial started
+  else { oxygenData = oxygen.readOxygenConcentration(); }  // read oxygen data
+
   oxygenEntry = "Oxygen Concentration: " + String(oxygenData);
   //Serial.println(oxygenEntry);
+  Serial.println(" DONE");
 
+  Serial.print("saving O2 sensor data...");
   if (oxygenEntry.length() > maxbuffer) { // check if data entry is too long
     oxygenEntry[maxbuffer - 1] = NULL;
   }
@@ -77,10 +94,9 @@ void dataRead(void) {
   for(int i = 0; i < oxygenEntry.length(); i++){
     ArduinoData[i] = oxygenEntry[i];
     //Serial.println(ArduinoData[i]);
-    if(i+1 > oxygenEntry.length()){ ArduinoData[i+1] = 0xFF; }
+    if(i+1 == oxygenEntry.length()) { ArduinoData[i+1] = 0xFF; }
   }
-  Serial.println("read end");
-  Serial.println("");
+  Serial.println(" DONE");
 }
 
 

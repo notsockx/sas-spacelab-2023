@@ -391,44 +391,40 @@ NextRow:NEXT
 
 FoundEvent:
 
-  'DEBUG CR,"found event: ",DEC UserVar3
-
-  'STORE DataStorage ' return storage pointer to Slot 4
-  'DEBUG CR, "Dump Etable FOR DEBUG "
-  'STORE 2
-  'FOR TempReg0 = 0 TO 10
-  '  DEBUG CR,"Event Table Row ",DEC TempReg0,":  "
-  '  READ ETable+(TempReg0*5)+0,TempReg1 : DEBUG DEC TempReg1,"  "
-  '  READ ETable+(TempReg0*5)+1,TempReg1 : DEBUG DEC TempReg1,"  "
-  '  READ ETable+(TempReg0*5)+2,TempReg1 : DEBUG DEC TempReg1,"  "
-  '  READ ETable+(TempReg0*5)+3,TempReg1 : DEBUG HEX TempReg1,"  "
-  '  READ ETable+(TempReg0*5)+4,TempReg1 : DEBUG DEC TempReg1,"  "
-  'NEXT
-  'DEBUG CR,"End of Table",CR
+  DEBUG CR,"looking up event ",DEC UserVar3, "... "
 
   STORE DataStorage
   BRANCH UserVar3,[Event0,    'Event 0 (do nothing)
   Event1,                     'Event 1 (take a photo)
   Event2,                     'Event 2 (toggle lights)
-  Event3,                     'Event 3 (fill chamber)
-  Event4]                     'Event 4 (repeat)
+  Event3,                     'Event 3 (10s pump pulse)
+  Event4,                     'Event 4 (3s pump pulse)
+  Event5,                     'Event 5 (chamber fill GIF rewind)
+  Event6,                     'Event 6 (photo loop rewind)
+  Event7,                     'Event 7 (circadian cycle rewind)
+  Event8]                     'Event 8 (main loop rewind)
 
   UserVar3 = 0                 'Error
-  DEBUG CR,"Event Byte is out of range",CR
+  DEBUG "FAIL",CR
   GOTO ReturnBack              'back to calling routine
 
-Event0: DEBUG CR,"REB0: Do nothing lol",CR
+Event0: DEBUG CR,"REB0: dump event table",CR
+        STORE 2
+        FOR TempReg0 = 0 TO 10
+          DEBUG CR,"[Row ",DEC TempReg0,"] D:"
+          READ ETable+(TempReg0*5)+0,TempReg1 : DEBUG DEC TempReg1,"  H:"
+          READ ETable+(TempReg0*5)+1,TempReg1 : DEBUG DEC TempReg1,"  M:"
+          READ ETable+(TempReg0*5)+2,TempReg1 : DEBUG DEC TempReg1,"  T:"
+          READ ETable+(TempReg0*5)+3,TempReg1 : DEBUG HEX TempReg1,"  E:"
+          READ ETable+(TempReg0*5)+4,TempReg1 : DEBUG DEC TempReg1,"    "
+        NEXT
+        DEBUG CR
+        STORE DataStorage
+
         tempReg0 = 4 'Destination Index (EventTableReturn)
         RUN 0        'Destination Slot
 
-Event1: DEBUG CR,"REB1: Take a photo",CR
-        I2CIN InternI2c, PCF8574address, [TempReg0]      ' read current IO state
-        IF ((TempReg0 & %00100000) = %00000000) THEN     ' are the lights off?
-          counter = 0                                    ' remember with counter var
-        ELSE                                             ' otherwise must be on
-          counter = 1                                    ' so record in counter var
-        ENDIF
-
+Event1: DEBUG CR,"REB1: take a photo",CR
         ' howell put this here idk what it is
         HIGH 14    'Turns on the LED's
 
@@ -438,58 +434,143 @@ Event1: DEBUG CR,"REB1: Take a photo",CR
         TempReg1 = 1    'Destination Index
         TempReg3 = 6    'Destination Slot
         RUN 6           'Execute a slot goto proceedure now doit
+        'DEBUG "pretend you took the photo...",CR
         'GOTO TakePhotoReturn
 TakePhotoReturn:
-        DEBUG CR,"Photo finished!", CR
-
-        IF (counter = 1) THEN                            ' were lights off prior?
-          I2COUT internI2C, PCF8574address, [%00100000]  ' turn them off if so
-        ENDIF
-
         LOW 14     'Turns off the LED's
         '!!! DO NOT REMOVE !!!'
         tempReg0 = 4 'Destination Index (EventTableReturn)
         RUN 0        'Destination Slot
 
-Event2: DEBUG CR,"REB2: Toggle lights" ,CR
-        I2CIN InternI2c, PCF8574address, [TempReg0]      ' read current IO state
-        IF ((TempReg0 & %00100000) = %00000000) THEN     ' are the lights off?
+Event2: DEBUG CR,"REB2: toggle lights" ,CR
+        I2CIN InternI2c, PCF8574address, [UserVar5]      ' read current IO state
+        IF ((UserVar5 & %00100000) = %00000000) THEN     ' are the lights off?
           I2COUT internI2C, PCF8574address, [%00100000]  ' turn them on
         ELSE                                             ' otherwise must be on
-          I2COUT internI2C, PCF8574address, [%00100000]  ' so turn them off
+          I2COUT internI2C, PCF8574address, [%00000000]  ' so turn them off
         ENDIF
         '!!! DO NOT REMOVE !!!'
         tempReg0 = 4 'Destination Index (EventTableReturn)
         RUN 0        'Destination Slot
 
-Event3: DEBUG CR,"REB3: Fill chamber"  ,CR
-        I2COUT internI2C, PCF8574address, [%00001000]  ' Pump 1 (IO3) on
-        SLEEP 120                                      ' wait 2 minutes
-        I2COUT internI2C, PCF8574address, [%00000000]  ' Pump 1 (IO3) off
+Event3: DEBUG CR,"REB3: 5s pump pulse"  ,CR
+        I2CIN InternI2c, PCF8574address, [UserVar5]      ' read current IO state
+
+        IF ((UserVar5 & %00100000) = %00000000) THEN     ' are the lights off?
+          I2COUT internI2C, PCF8574address, [%00011000]  ' turn them on w/ pump
+          SLEEP 5                                       ' wait a bit
+          I2COUT internI2C, PCF8574address, [%00000000]  ' turn pump off but keep lights on
+        ELSE                                             ' otherwise must be on
+          I2COUT internI2C, PCF8574address, [%00111000]  ' turn only pump on
+          SLEEP 5                                       ' wait a bit
+          I2COUT internI2C, PCF8574address, [%00100000]  ' turn them off
+        ENDIF
+
         '!!! DO NOT REMOVE !!!'
         tempReg0 = 4 'Destination Index (EventTableReturn)
         RUN 0        'Destination Slot
 
-Event4: DEBUG CR,"REB4: Rewind" ,CR
+Event4: DEBUG CR,"REB4: 1s pump pulse"  ,CR
+        I2CIN InternI2c, PCF8574address, [UserVar5]      ' read current IO state
+
+        IF ((UserVar5 & %00100000) = %00000000) THEN     ' are the lights off?
+          I2COUT internI2C, PCF8574address, [%00011000]  ' turn them on w/ pump
+          SLEEP 1                                        ' wait a bit
+          I2COUT internI2C, PCF8574address, [%00000000]  ' turn pump off but keep lights on
+        ELSE                                             ' otherwise must be on
+          I2COUT internI2C, PCF8574address, [%00111000]  ' turn only pump on
+          SLEEP 1                                        ' wait a bit
+          I2COUT internI2C, PCF8574address, [%00100000]  ' turn them off
+        ENDIF
+
+        '!!! DO NOT REMOVE !!!'
+        tempReg0 = 4 'Destination Index (EventTableReturn)
+        RUN 0        'Destination Slot
+
+Event5: DEBUG CR,"REB5: chamber fill GIF rewind" ,CR
         STORE 2
         READ PumpIter,TempReg0
         TempReg0 = TempReg0 - 1          'decrement pump iteration count
-        DEBUG "Loop countdown: ",DEC2 TempReg0,CR,CR
+        DEBUG "Loop countdown: ",DEC TempReg0,CR,CR
         WRITE PumpIter,TempReg0          'store count in Pump Iterator
 
         IF TempReg0 < 1 THEN
            DEBUG "Loop finished, exiting...",CR,CR
-           WRITE PumpIter, 30 'restore value  NOTE: MATCH WITH BOTTOM VAR
+           WRITE PumpIter, 120 'restore value  NOTE: MATCH WITH BOTTOM VAR
            GOTO DmpOut 'timed out
         ENDIF
 
         STORE 0
-        WRITE DurDay,0 : WRITE DurHour,0 : WRITE DurMin,20 'Reset Event Table State
+        WRITE DurDay,0 : WRITE DurHour,0 : WRITE DurMin,2 'Reset Event Table State
 
         STORE 2
-          FOR TempReg0 = 1 TO 3  ' represents number of rows to clear
+          FOR TempReg0 = 2 TO 4  ' represents number of rows to clear
           WRITE ETable+(TempReg0*5)+3,$FF 'reset tag fields to allow a repeat cycle
         NEXT
+        GOSUB DmpOut
+Event6: DEBUG CR,"REB6: photo loop rewind" ,CR
+        STORE 2
+        READ PhotoIter,TempReg0
+        TempReg0 = TempReg0 - 1          'decrement pump iteration count
+        DEBUG "Loop countdown: ",DEC TempReg0,CR,CR
+        WRITE PhotoIter,TempReg0          'store count in Pump Iterator
+
+        IF TempReg0 < 1 THEN
+           DEBUG "Loop finished, exiting...",CR,CR
+           WRITE PhotoIter, 10 'restore value  NOTE: MATCH WITH BOTTOM VAR
+           GOTO DmpOut 'timed out
+        ENDIF
+
+        STORE 0
+        WRITE DurDay,0 : WRITE DurHour,0 : WRITE DurMin,5 'Reset Event Table State
+
+        STORE 2
+          FOR TempReg0 = 5 TO 6  ' represents number of rows to clear
+          WRITE ETable+(TempReg0*5)+3,$FF 'reset tag fields to allow a repeat cycle
+        NEXT
+        GOSUB DmpOut
+Event7: DEBUG CR,"REB7: circadian cycle rewind" ,CR
+        STORE 2
+        READ DayIter,TempReg0
+        TempReg0 = TempReg0 - 1          'decrement pump iteration count
+        DEBUG "Loop countdown: ",DEC TempReg0,CR,CR
+        WRITE DayIter,TempReg0          'store count in Pump Iterator
+
+        IF TempReg0 < 1 THEN
+           DEBUG "Loop finished, exiting...",CR,CR
+           WRITE DayIter, 8 'restore value  NOTE: MATCH WITH BOTTOM VAR
+           GOTO DmpOut 'timed out
+        ENDIF
+
+        STORE 0
+        WRITE DurDay,0 : WRITE DurHour,0 : WRITE DurMin,5 'Reset Event Table State
+
+        STORE 2
+          FOR TempReg0 = 5 TO 8  ' represents number of rows to clear
+          WRITE ETable+(TempReg0*5)+3,$FF 'reset tag fields to allow a repeat cycle
+        NEXT
+        GOSUB DmpOut
+Event8: DEBUG CR,"REB8: main loop rewind" ,CR
+        STORE 2
+        READ MainIter,TempReg0
+        TempReg0 = TempReg0 - 1          'decrement pump iteration count
+        DEBUG "Loop countdown: ",DEC TempReg0,CR,CR
+        WRITE MainIter,TempReg0          'store count in Pump Iterator
+
+        IF TempReg0 < 1 THEN
+           DEBUG "Loop finished, exiting...",CR,CR
+           WRITE MainIter, 255 'restore value  NOTE: MATCH WITH BOTTOM VAR
+           GOTO DmpOut 'timed out
+        ENDIF
+
+        STORE 0
+        WRITE DurDay,0 : WRITE DurHour,0 : WRITE DurMin,5 'Reset Event Table State
+
+        STORE 2
+          FOR TempReg0 = 5 TO 10  ' represents number of rows to clear
+          WRITE ETable+(TempReg0*5)+3,$FF 'reset tag fields to allow a repeat cycle
+        NEXT
+        GOSUB DmpOut
 DmpOut: STORE DataStorage
         tempReg0 = 4 'Destination Index (EventTableReturn)
         RUN 0        'Destination Slot
@@ -516,46 +597,20 @@ P3vector:
 
 
          '    Day  Hour  Min   Tag  EventByte
- ETable DATA  00,  00,   00,   $FF,     00   'Row 0
-        DATA  00,  00,   01,   $FF,     02   'Row 1
-        DATA  00,  00,   02,   $FF,     01   'Row 2
-        DATA  00,  00,   03,   $FF,     00   'Row 3
-        DATA  01,  04,   59,   $FF,     00   'Row 4   Take Inspection Photo
-        DATA  01,  05,   00,   $FF,     00   'Row 5   5s Pump Pulse
-        DATA  01,  05,   01,   $FF,     00   'Row 6   Take photo to record Event Table State
-        DATA  01,  05,   02,   $FF,     00   'Row 7   Replay Take Replay Exit Photo
-        DATA  01,  05,   03,   $FF,     00   'Row 8   Take another photo to record Event Table state
-        DATA  05,  00,   00,   $FF,     00   'Row 9
-        DATA  06,  00,   00,   $FF,     00   'Row 10
-        DATA  07,  00,   00,   $FF,     00   'Row 11
-        DATA  08,  00,   00,   $FF,     00   'Row 12
-        DATA  09,  00,   00,   $FF,     00   'Row 13
-        DATA  10,  00,   00,   $FF,     00   'Row 14
-        DATA  11,  00,   00,   $FF,     00   'Row 15
-        DATA  12,  00,   00,   $FF,     00   'Row 16
-        DATA  13,  00,   00,   $FF,     00   'Row 17
-        DATA  14,  00,   00,   $FF,     00   'Row 18
-        DATA  15,  00,   00,   $FF,     00   'Row 19
-        DATA  16,  00,   00,   $FF,     00   'Row 20
-        DATA  17,  00,   00,   $FF,     00   'Row 21
-        DATA  18,  00,   00,   $FF,     00   'Row 22
-        DATA  19,  00,   00,   $FF,     00   'Row 23
-        DATA  20,  00,   00,   $FF,     00   'Row 24
-        DATA  21,  00,   00,   $FF,     00   'Row 25
-        DATA  22,  00,   00,   $FF,     00   'Row 26
-        DATA  23,  00,   00,   $FF,     00   'Row 27
-        DATA  24,  00,   00,   $FF,     00   'Row 28
-        DATA  25,  00,   00,   $FF,     00   'Row 29
-        DATA  26,  00,   00,   $FF,     00   'Row 30
-        DATA  27,  00,   00,   $FF,     00   'Row 31
-        DATA  28,  00,   00,   $FF,     00   'Row 32
-        DATA  29,  00,   00,   $FF,     00   'Row 33
-        DATA  30,  00,   00,   $FF,     00   'Row 34
-        DATA  31,  00,   00,   $FF,     00   'Row 35
-        DATA  32,  00,   00,   $FF,     00   'Row 36
-        DATA  33,  00,   00,   $FF,     00   'Row 37
-        DATA  34,  00,   00,   $FF,     00   'Row 38
-        DATA  35,  00,   00,   $FF,     00   'Row 39
-        DATA  36,  00,   00,   $FF,     00   'Row 40
+ETable  DATA  00,  00,   00,   $FF,     01   'Row 0  - dump event table
+        DATA  00,  00,   01,   $FF,     02   'Row 1  - turn on lights
+        DATA  00,  00,   02,   $FF,     03   'Row 2  - 10s pump pulse
+        DATA  00,  00,   03,   $FF,     01   'Row 3  - take a photo
+        DATA  00,  00,   04,   $FF,     05   'Row 4  - LOOP: chamber GIF (row 2-3 120x times)
+        DATA  00,  00,   05,   $FF,     01   'Row 5  - take a photo
+        DATA  00,  00,   06,   $FF,     06   'Row 6  - photoloop (row 5 10x times)
+        DATA  00,  00,   07,   $FF,     04   'Row 7  - top up chamber: 2s pump pulse
+        DATA  00,  00,   08,   $FF,     07   'Row 8  - LOOP: circadian period (row 5-7 8x times)
+        DATA  00,  00,   09,   $FF,     02   'Row 9  - toggle lights on/off for circadian cycle
+        DATA  00,  00,   10,   $FF,     08   'Row 10 - LOOP: main loop (row 5-9 255x times)
 
-PumpIter DATA   30  '3 minute
+PumpIter  DATA   38   '120 seconds
+PhotoIter DATA   20   '10 images before 1s pump pulse
+DayIter   DATA   8    '8  photo loops before toggle night cycle
+
+MainIter  DATA   255  'big number, loop forever
