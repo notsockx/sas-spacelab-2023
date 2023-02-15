@@ -1,0 +1,15 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP NE555DR
+D Single Precision Timer
+K
+F http://www.ti.com/lit/ds/symlink/ne555.pdf
+$ENDCMP
+#
+$CMP DRV8210DRLR
+D Motor / Motion / Ignition Controllers & Drivers 12-V, 1.76-A brushed DC motor driver with auto sleep mode
+K
+F https://www.ti.com/lit/ds/symlink/drv8210.pdf?ts=1641207817417&ref_url=https%253A%252F%252Fwww.google.com%252F
+$ENDCMP
+#
+#End Doc Library
